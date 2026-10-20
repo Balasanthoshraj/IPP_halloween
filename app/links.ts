@@ -4,5 +4,6 @@ export const LINKS = [
   { href: "/#sponsors", label: "Sponsors" },
   { href: "/about", label: "About" },
   { href: "/events", label: "Events" },
+  { href: "/teams", label: "Teams" },
   { href: "/contact", label: "Contact" },
 ] as const;

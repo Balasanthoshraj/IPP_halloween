@@ -37,6 +37,7 @@ export default function Stage({ children }: { children: ReactNode }) {
     let avg = 1 / 60;
     let counted = 0;
     let navOn = false;
+    let onScreen = true; // the loop sleeps while the stage is scrolled out of view (the sponsors are below it)
 
     const fit = () => renderer?.resize(stage.clientWidth, stage.clientHeight, quality);
     const measure = () => {
@@ -61,7 +62,7 @@ export default function Stage({ children }: { children: ReactNode }) {
       land(p);
     };
     const tick = (now: number) => {
-      raf = requestAnimationFrame(tick);
+      raf = onScreen ? requestAnimationFrame(tick) : 0;
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       p += (target - p) * (1 - Math.exp(-dt * 7));
@@ -113,11 +114,24 @@ export default function Stage({ children }: { children: ReactNode }) {
         raf = requestAnimationFrame(tick);
       }
     });
+    // (isIntersecting stays true while the stage's edge merely touches the screen, which is exactly where the page ends)
+    const visibility = new IntersectionObserver(
+      ([entry]) => {
+        onScreen = entry.intersectionRatio > 0;
+        if (onScreen && renderer && !still && !raf) {
+          last = performance.now();
+          raf = requestAnimationFrame(tick);
+        }
+      },
+      { threshold: [0, 0.001] },
+    );
+    visibility.observe(stage);
     addEventListener("scroll", onScroll, { passive: true });
     addEventListener("resize", onResize);
     addEventListener("pointermove", onMove, { passive: true });
     return () => {
       alive = false;
+      visibility.disconnect();
       cancelAnimationFrame(raf);
       removeEventListener("scroll", onScroll);
       removeEventListener("resize", onResize);

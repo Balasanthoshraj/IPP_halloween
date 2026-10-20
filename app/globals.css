@@ -262,7 +262,7 @@ html[data-nav] .nav li,
 
 .nav a {
   display: block;
-  padding: 0.62em clamp(0.55em, 2.6vw, 1.05em);
+  padding: 0.62em clamp(0.5em, 1.9vw, 1.05em); /* six links: tighter on a phone */
   border-radius: 999px;
   color: rgba(255, 255, 255, 0.64);
   text-decoration: none;
@@ -280,6 +280,18 @@ html[data-nav] .nav li,
 .nav a:focus-visible {
   outline: 2px solid #fff;
   outline-offset: -2px;
+}
+
+@media (max-width: 359px) {
+  .nav {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 339px) {
+  .nav {
+    font-size: 10.5px;
+  }
 }
 
 /* the one highlight; Nav sets --x / --w to the link it should sit under */
@@ -309,29 +321,6 @@ html[data-nav] .nav-pill,
 
 .nav.ready .nav-pill {
   transition: transform 0.55s var(--ease), width 0.55s var(--ease), opacity 0.6s ease 0.5s;
-}
-
-/* Placeholder sections under the hero, one per nav link. */
-.sec {
-  box-sizing: border-box;
-  min-height: 100svh;
-  display: grid;
-  place-content: center;
-  gap: 0.9rem;
-  padding: 6rem 1.5rem;
-  text-align: center;
-  font: 500 clamp(1rem, 2vw, 1.25rem) / 1.4 var(--font-sans), system-ui, sans-serif;
-}
-
-.sec h2 {
-  margin: 0;
-  font: 700 clamp(2.25rem, 7vw, 4.5rem) / 1 var(--font-sans), system-ui, sans-serif;
-  letter-spacing: -0.02em;
-}
-
-.sec p {
-  margin: 0;
-  color: rgba(255, 244, 226, 0.55);
 }
 
 @media (prefers-reduced-motion: reduce) {

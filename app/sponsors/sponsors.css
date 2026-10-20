@@ -1,0 +1,111 @@
+/* Sponsors: the end of the home page. The lanyards are drawn in one canvas (board.ts) that fills this section. */
+.sp {
+  position: relative;
+  height: max(100svh, 620px);
+  overflow: hidden;
+  background: linear-gradient(#050b1e, #04091a 30%);
+}
+
+/* two rows of two (see layout() in board.ts), each row 5.25 world units tall */
+@media (max-width: 899px) {
+  .sp {
+    height: calc(10.5 * min(23.8vw, 140px));
+  }
+}
+
+/* a soft shadow under the home page's edge, so the straps read as hanging from it */
+.sp::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 36px;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(rgba(0, 0, 0, 0.55), transparent);
+}
+
+.sp-board {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+
+.sp-board[data-ready] {
+  opacity: 1;
+}
+
+.sp-board canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y; /* a vertical swipe still scrolls the page; sideways swings a badge */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-board {
+    transition: none;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sp-list {
+  list-style: none;
+}
+
+/* no WebGL (set by LanyardHost): show the list as a plain row of badges */
+.sp[data-fallback] {
+  height: auto;
+}
+
+.sp[data-fallback] .sp-list {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 96px 24px;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 28px;
+}
+
+.sp[data-fallback] .sp-list li {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  text-align: center;
+}
+
+.sp[data-fallback] .sp-list span {
+  font: 700 0.8rem / 1 var(--font-sans), system-ui, sans-serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #f6a24e;
+}
+
+.sp[data-fallback] .sp-list img {
+  width: min(100%, 260px);
+  height: 110px;
+  padding: 14px;
+  box-sizing: border-box;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #fff;
+}

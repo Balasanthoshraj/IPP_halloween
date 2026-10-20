@@ -1,8 +1,29 @@
+/* eslint-disable @next/next/no-img-element -- two pre-sized webp plates in public/art/events */
 import type { Metadata } from "next";
-import Room from "../Room";
+import { preload } from "react-dom";
+import Transition from "../Transition";
+import Explorer from "./Explorer";
+import { chakra, teko } from "./fonts";
+import "./events.css";
 
-export const metadata: Metadata = { title: "Events · ISTA presents i++26" };
+export const metadata: Metadata = {
+  title: "Events · ISTA presents i++26",
+};
+
+const BG = "/art/events/bg.webp";
+const BLUR = "/art/events/bg-blur.webp";
 
 export default function Events() {
-  return <Room title="Events" />;
+  preload(BG, { as: "image", fetchPriority: "high" });
+  preload(BLUR, { as: "image" });
+
+  return (
+    <Transition>
+      <main className={`page ev ${teko.variable} ${chakra.variable}`}>
+        <img className="ev-bg" src={BG} alt="" decoding="async" fetchPriority="high" />
+        <img className="ev-blur" src={BLUR} alt="" decoding="async" />
+        <Explorer />
+      </main>
+    </Transition>
+  );
 }

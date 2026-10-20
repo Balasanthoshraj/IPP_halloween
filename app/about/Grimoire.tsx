@@ -333,7 +333,7 @@ export default function Grimoire() {
       </div>
 
       <p className="gr-hint" aria-hidden="true">
-        Open the book
+        Tap on the book
       </p>
 
       <div className="gr-pager" aria-hidden={phase !== "open"}>

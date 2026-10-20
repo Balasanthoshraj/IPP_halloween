@@ -1,0 +1,697 @@
+/* Events: one frosted-glass panel over the study-room plate (the categories on its left, the event cards on its right), and the
+   event popup. Nothing is blurred while it runs: .ev-blur is a pre-blurred copy of the plate, clipped to the panel's rectangle. */
+.ev {
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --orange: #f28a2e;
+  --cream: #fff4de;
+  /* the panel's edges: the left one leaves the window and the witch in view, the top one clears the nav pill */
+  --gl: clamp(12px, 12.7vw, 260px);
+  --gr: clamp(12px, 1.5vw, 40px);
+  --gt: clamp(64px, 9.5svh, 104px);
+  --gb: clamp(12px, 4svh, 44px);
+  --r: 28px;
+  --gap: 12px;
+  color-scheme: dark;
+  background: #050818;
+  color: var(--cream);
+  font-family: var(--font-chakra), system-ui, sans-serif;
+}
+
+.ev-bg,
+.ev-blur {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ev-blur {
+  clip-path: inset(var(--gt) var(--gr) var(--gb) var(--gl) round var(--r));
+}
+
+/* the glass: a light tint and a hairline rim over the blurred plate, 15px of it around the two columns */
+.ev-shell {
+  position: absolute;
+  inset: var(--gt) var(--gr) var(--gb) var(--gl);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: clamp(150px, 19%, 290px) minmax(0, 1fr);
+  gap: clamp(12px, 2vw, 30px);
+  padding: 15px;
+  border-radius: var(--r);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05) 42%, rgba(255, 255, 255, 0.09));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 30px 80px -24px rgba(0, 0, 0, 0.7);
+}
+
+/* ---- categories ---- */
+.ev-tabs {
+  display: grid;
+  align-content: center;
+  gap: clamp(10px, 2.6svh, 24px);
+}
+
+.ev-tab {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.5s var(--ease), filter 0.5s var(--ease);
+}
+
+/* the frames are see-through, so their fill sits behind them: dark by default, the site's orange for the one showing */
+.ev-tab::before {
+  content: "";
+  position: absolute;
+  inset: 19% 7% 17% 11%;
+  border-radius: 12px;
+  background: rgba(8, 10, 28, 0.5);
+  transition: background 0.5s var(--ease);
+}
+
+.ev-tab img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ev-tab[aria-pressed="true"] {
+  transform: scale(1.04);
+  filter: drop-shadow(0 0 14px rgba(242, 138, 46, 0.45));
+}
+
+.ev-tab[aria-pressed="true"]::before {
+  background: linear-gradient(135deg, #c8641c, #6a300e);
+}
+
+@media (hover: hover) {
+  .ev-tab:not([aria-pressed="true"]):hover {
+    transform: translateY(-2px);
+  }
+
+  .ev-tab:not([aria-pressed="true"]):hover::before {
+    background: rgba(8, 10, 28, 0.28);
+  }
+}
+
+.ev-tab:active {
+  transform: scale(0.97);
+}
+
+.ev-tab:focus-visible {
+  outline: 2px solid #ffb25a;
+  outline-offset: 3px;
+  border-radius: 14px;
+}
+
+/* ---- heading and the row of cards ---- */
+.ev-main {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(8px, 1.8svh, 20px);
+  min-width: 0;
+  min-height: 0;
+}
+
+.ev-head {
+  display: grid;
+  justify-items: center;
+}
+
+.ev-head h1 {
+  margin: 0;
+  font: 700 clamp(32px, 3.7vw, 64px) / 1 var(--font-teko), sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #fbf1de;
+  text-shadow: 0 3px 0 rgba(120, 52, 14, 0.45), 0 8px 26px rgba(0, 0, 0, 0.55);
+}
+
+/* a rule with a diamond; each half tapers away from it (the heading's is orange, a card's is its own colour) */
+.ev-rule {
+  --c: var(--orange);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: clamp(180px, 24vw, 420px);
+  margin-top: clamp(6px, 1.2svh, 12px);
+}
+
+.ev-rule::before,
+.ev-rule::after {
+  content: "";
+  flex: 1;
+  height: 3px;
+  background: var(--c);
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+}
+
+.ev-rule::after {
+  transform: scaleX(-1);
+}
+
+.ev-rule i {
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--c);
+  transform: rotate(45deg);
+}
+
+/* The row. Its size is the container the cards measure themselves against: --e, the open card's width, is about a poster's
+   proportions, and never so wide that the others drop under a strip's width. */
+.ev-list {
+  display: flex;
+  gap: var(--gap);
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  container-type: size;
+}
+
+/* A card is a flex item that either shares the row (flex-grow 1, no basis) or is the open one (basis --e). Both properties ease
+   together, so across a switch the widths always add up to the row and move in a straight line. */
+.ev-slot {
+  --e: max(min(74cqh, 60cqw, 100cqw - (var(--n) - 1) * 52px), 200px);
+  flex: 1 1 0px;
+  min-width: 40px;
+  animation: ev-in 0.7s var(--ease) backwards;
+  animation-delay: calc(var(--i) * 55ms + 80ms);
+  transition: flex-grow 0.65s var(--ease), flex-basis 0.65s var(--ease);
+}
+
+.ev-slot[data-open] {
+  flex: 0 0 var(--e);
+}
+
+@keyframes ev-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.97);
+  }
+}
+
+.ev-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #0b0d1c;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  contain: layout paint;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ev-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 58%;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* a light wash on hover, and the card's colour as a ring, both above the art and the text */
+.ev-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.ev-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px var(--a);
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.ev-slot[data-open] .ev-card::after {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .ev-slot:not([data-open]) .ev-card:hover::before {
+    opacity: 0.1;
+  }
+}
+
+.ev-card:focus-visible {
+  outline: 3px solid #ffb25a;
+  outline-offset: 3px;
+}
+
+/* the name on a strip, up the side; it grows with the strip's resting width (a row of three has room for more than a row of eight) */
+.ev-fold {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 18px;
+  font: 600 clamp(17px, calc((100cqw - (var(--n) - 1) * var(--gap)) / var(--n) * 0.09), 30px) / 1 var(--font-teko), sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  transform: translateX(-50%) rotate(180deg);
+  text-shadow: 0 0 5px #000, 0 0 12px rgba(0, 0, 0, 0.9), 0 2px 14px rgba(0, 0, 0, 0.8);
+  transition: opacity 0.35s ease 0.2s;
+}
+
+.ev-slot[data-open] .ev-fold {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0s 0.15s;
+}
+
+/* what the open card shows. It is as wide as the open card will be, so it does not reflow while the card is still opening. */
+.ev-info {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  width: var(--e);
+  padding: 72px 20px 20px;
+  background: linear-gradient(transparent, rgba(6, 5, 12, 0.88) 62%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s 0.15s;
+}
+
+.ev-slot[data-open] .ev-info {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.4s var(--ease) 0.28s, transform 0.55s var(--ease) 0.28s, visibility 0s;
+}
+
+.ev-title {
+  display: block;
+  padding-right: 56px;
+  font: 700 clamp(26px, 2.3vw, 40px) / 1.02 var(--font-teko), sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+}
+
+.ev-info .ev-rule {
+  --c: var(--a);
+  width: 104px;
+  margin: 8px 0 12px;
+}
+
+.ev-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 56px;
+  font: 500 clamp(13px, 1vw, 16px) / 1.3 var(--font-chakra), sans-serif;
+}
+
+.ev-row + .ev-row {
+  margin-top: 6px;
+}
+
+.ev-row svg {
+  flex: none;
+  font-size: 1.3em;
+  color: var(--a);
+}
+
+/* the cue for the second click */
+.ev-go {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 2px solid var(--a);
+  border-radius: 50%;
+  background: rgba(6, 5, 12, 0.5);
+  font-size: 22px;
+}
+
+/* ---- the event popup ---- */
+.ev-pop {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background: rgba(3, 5, 14, 0.84);
+  color: var(--cream);
+  opacity: 0;
+  transition: opacity 0.3s ease, display 0.3s allow-discrete, overlay 0.3s allow-discrete;
+}
+
+.ev-pop[open] {
+  display: grid;
+  place-items: center;
+  opacity: 1;
+}
+
+.ev-pop::backdrop {
+  background: transparent;
+}
+
+@starting-style {
+  .ev-pop[open] {
+    opacity: 0;
+  }
+}
+
+.ev-back {
+  position: absolute;
+  z-index: 1;
+  top: max(14px, env(safe-area-inset-top));
+  left: max(14px, env(safe-area-inset-left));
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 26px;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+@media (hover: hover) {
+  .ev-back:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.ev-back:focus-visible {
+  outline: 2px solid #ffb25a;
+  outline-offset: 2px;
+}
+
+.ev-sheet {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  width: min(1120px, calc(100vw - 48px));
+  height: min(660px, calc(100svh - 128px));
+  border-radius: 28px;
+  overflow: hidden;
+  background: #14151f;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 40px 120px rgba(0, 0, 0, 0.7);
+  transform: scale(0.96) translateY(14px);
+  transition: transform 0.45s var(--ease);
+}
+
+.ev-pop[open] .ev-sheet {
+  transform: none;
+}
+
+@starting-style {
+  .ev-pop[open] .ev-sheet {
+    transform: scale(0.96) translateY(14px);
+  }
+}
+
+/* the poster: the card's art with the facts laid over it */
+.ev-poster {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  padding: clamp(20px, 2.6vw, 36px);
+  background: #0c0a16;
+}
+
+.ev-poster > img {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 46%;
+}
+
+.ev-poster::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(rgba(6, 5, 12, 0.78), rgba(6, 5, 12, 0) 40%, rgba(6, 5, 12, 0) 48%, rgba(6, 5, 12, 0.72) 70%, rgba(6, 5, 12, 0.94));
+}
+
+.ev-poster-top {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+}
+
+.ev-brand {
+  font: 600 12px / 1.2 var(--font-chakra), sans-serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 244, 222, 0.8);
+}
+
+.ev-poster-top strong {
+  font: 700 clamp(40px, 5vw, 68px) / 0.95 var(--font-teko), sans-serif;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.ev-tag {
+  padding: 8px 16px;
+  border: 1px solid var(--a);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--a) 38%, rgba(8, 8, 20, 0.62));
+  font: 600 13px / 1.25 var(--font-chakra), sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ev-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: 600 clamp(13px, 1.05vw, 16px) / 1.3 var(--font-chakra), sans-serif;
+}
+
+.ev-facts li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ev-facts li.wide {
+  grid-column: 1 / -1;
+}
+
+.ev-facts svg {
+  flex: none;
+  font-size: 1.4em;
+  color: var(--a);
+  filter: brightness(1.3);
+}
+
+.ev-facts a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ev-facts a:focus-visible {
+  outline: 2px solid #ffb25a;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* the description */
+.ev-text {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(22px, 2.6vw, 40px) clamp(22px, 2.8vw, 44px) 40px;
+  font: 500 clamp(15px, 1.25vw, 19px) / 1.65 var(--font-chakra), sans-serif;
+  color: #e6e3dc;
+  scrollbar-width: thin;
+  scrollbar-color: #3b4690 transparent;
+}
+
+.ev-text h2 {
+  margin: 0 0 18px;
+  font: 700 clamp(26px, 2.4vw, 36px) / 1.1 var(--font-chakra), sans-serif;
+  color: #fff;
+}
+
+.ev-text h3 {
+  margin: 26px 0 8px;
+  font: 700 1.1em / 1.3 var(--font-chakra), sans-serif;
+  color: #4a78ff;
+}
+
+.ev-text p {
+  margin: 0 0 12px;
+}
+
+.ev-text b {
+  font-weight: 700;
+  color: #3d7bff;
+}
+
+/* ---- narrow screens: the categories become a row above the cards, and the cards stack ---- */
+@media (max-width: 859px) {
+  .ev {
+    --gl: 12px;
+    --gr: 12px;
+    --gt: 64px;
+    --gb: 12px;
+    --r: 24px;
+  }
+
+  .ev-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .ev-tabs {
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    align-content: start;
+    gap: 8px;
+  }
+
+  .ev-head h1 {
+    font-size: 34px;
+  }
+
+  .ev-rule {
+    width: 160px;
+  }
+
+  .ev-list {
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .ev-slot {
+    --e: max(min(90cqw, 62cqh, 100cqh - (var(--n) - 1) * 56px), 150px);
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  /* a resting row is a plain tinted bar; the art fades in when it opens */
+  .ev-card {
+    background: linear-gradient(100deg, color-mix(in srgb, var(--a) 42%, #0a0b18), #0a0b18 78%);
+  }
+
+  .ev-art {
+    object-position: 50% 82%;
+    opacity: 0;
+    transition: opacity 0.45s ease;
+  }
+
+  .ev-slot[data-open] .ev-art {
+    opacity: 1;
+    transition-delay: 0.1s;
+  }
+
+  .ev-fold {
+    top: 50%;
+    bottom: auto;
+    left: 18px;
+    font-size: 22px;
+    writing-mode: horizontal-tb;
+    transform: translateY(-50%);
+  }
+
+  .ev-info {
+    width: 100%;
+    padding-top: 56px;
+  }
+
+  .ev-sheet {
+    display: block;
+    width: calc(100vw - 24px);
+    height: calc(100svh - 128px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  .ev-poster {
+    min-height: min(380px, 56svh);
+  }
+
+  .ev-text {
+    overflow: visible;
+  }
+}
+
+/* a phone: the tab above already names the category, so the heading steps aside for the list (it stays for screen readers) */
+@media (max-width: 520px) {
+  .ev-main {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .ev-head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ev *,
+  .ev *::before,
+  .ev *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
