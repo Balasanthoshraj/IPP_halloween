@@ -1,0 +1,296 @@
+/* About: a spell book on a lectern in the castle. Everything is placed in "open book units" and scaled with --px. */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.gr {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #050818;
+}
+
+/* 16:9 scene scaled to cover the screen; the book is positioned from the same maths in Grimoire.tsx */
+.gr-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100vw, 178.78svh);
+  height: max(55.94vw, 100svh);
+  translate: -50% -50%;
+}
+
+.gr-scene,
+.gr-dim {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* blurred, darker copy of the scene: fades in while the book is open */
+.gr-dim {
+  opacity: 0;
+}
+
+.gr-glow {
+  position: absolute;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 178, 84, 0.5) 0%, rgba(255, 140, 50, 0.2) 32%, rgba(255, 120, 40, 0) 66%);
+  pointer-events: none;
+  animation: gr-flicker 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes gr-flicker {
+  0% {
+    opacity: 0.7;
+    scale: 0.96;
+  }
+  40% {
+    opacity: 1;
+    scale: 1.04;
+  }
+  70% {
+    opacity: 0.82;
+    scale: 0.99;
+  }
+  100% {
+    opacity: 0.95;
+    scale: 1.06;
+  }
+}
+
+.gr-ui {
+  pointer-events: none;
+}
+
+.gr-hit {
+  position: absolute;
+  border: 0;
+  border-radius: 28px;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gr-hit:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 6px;
+}
+
+.gr:not([data-phase="closed"]) .gr-hit,
+.gr:not([data-ready]) .gr-hit {
+  pointer-events: none;
+}
+
+/* anything outside the open book closes it */
+.gr-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.gr[data-phase="opening"] .gr-backdrop,
+.gr[data-phase="open"] .gr-backdrop {
+  pointer-events: auto;
+}
+
+/* camera: perspective for the turning cover and leaves */
+.gr-cam {
+  position: absolute;
+  inset: 0;
+  perspective: 3600px;
+  perspective-origin: 50% 50%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.gr[data-ready] .gr-cam {
+  opacity: 1;
+}
+
+/* warm-up: drawn, so every layer gets rasterised, but not visible */
+.gr[data-warm] .gr-cam {
+  opacity: 0.001;
+  transition: none;
+}
+
+.gr-book {
+  --px: calc(var(--k, 1) * 1px);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(1536 * var(--px));
+  height: calc(1024 * var(--px));
+  transform-origin: 0 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.gr[data-phase="opening"] .gr-book,
+.gr[data-phase="open"] .gr-book {
+  pointer-events: auto;
+}
+
+/* the right-hand pages and the right cover; the left half only ever shows what has turned onto it */
+.gr-base {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  clip-path: inset(0 0 0 50%);
+  transform: translateZ(-8px) scale(1.003);
+}
+
+.gr-flip {
+  position: absolute;
+  top: 0;
+  height: calc(1024 * var(--px));
+  transform-origin: 0 50%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.gr-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.gr-back {
+  transform: rotateY(180deg);
+}
+
+.gr-img {
+  position: absolute;
+  display: block;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ink on parchment */
+.gr-text {
+  position: absolute;
+  color: #2a160a;
+  font-family: var(--font-fell), "Iowan Old Style", Georgia, serif;
+}
+
+.gr-h {
+  margin: 0;
+  text-align: center;
+  font: 400 calc(66 * var(--px)) / 1 var(--font-canticle), Georgia, serif;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.gr-h::after {
+  content: "";
+  display: block;
+  width: 44%;
+  height: calc(3 * var(--px));
+  margin: calc(16 * var(--px)) auto calc(26 * var(--px));
+  background: linear-gradient(90deg, transparent, rgba(58, 33, 16, 0.75) 20%, rgba(58, 33, 16, 0.75) 80%, transparent);
+}
+
+.gr-p {
+  margin: 0;
+  font-size: calc(28 * var(--px));
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.gr-p span {
+  opacity: 0;
+  will-change: opacity; /* each sentence fades on its own layer, with no repaint */
+}
+
+.gr-hint {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(24px, 7svh, 72px);
+  translate: -50% 0;
+  margin: 0;
+  padding: 0.6rem 1.05rem;
+  border-radius: 999px;
+  font: 500 0.82rem / 1 var(--font-sans), system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(14, 16, 32, 0.5);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.gr[data-ready][data-phase="closed"] .gr-hint {
+  opacity: 1;
+  animation: gr-breathe 3.4s ease-in-out infinite;
+}
+
+@keyframes gr-breathe {
+  50% {
+    translate: -50% -4px;
+  }
+}
+
+/* phones: one page at a time, with arrows (swiping works too) */
+.gr-pager {
+  position: absolute;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  translate: -50% 0;
+  display: none;
+  gap: 14px;
+}
+
+.gr-pager button {
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  font: 400 28px / 1 system-ui, sans-serif;
+  color: #fff;
+  background: rgba(14, 16, 32, 0.55);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(14px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gr-pager button:disabled {
+  opacity: 0.35;
+}
+
+@media (max-width: 799px), (max-aspect-ratio: 11/10) {
+  .gr[data-phase="open"] .gr-pager {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gr-glow,
+  .gr-hint {
+    animation: none !important;
+  }
+
+  .gr-cam {
+    transition: none;
+  }
+}
