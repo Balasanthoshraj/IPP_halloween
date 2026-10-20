@@ -2,7 +2,7 @@
 export const LINKS = [
   { href: "/#home", label: "Home" },
   { href: "/#sponsors", label: "Sponsors" },
-  { href: "/about", label: "About" },
+  { href: "/about", label: "About Us" },
   { href: "/events", label: "Events" },
   { href: "/contact", label: "Contact" },
 ] as const;

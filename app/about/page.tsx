@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Transition from "../Transition";
-import Grimoire from "./Grimoire";
+import { IllustratedScene } from "@/ippbook/components/Scene/IllustratedScene";
+import "./book.css";
 
 export const metadata: Metadata = {
   title: "About · ISTA presents i++26",
@@ -9,8 +10,8 @@ export const metadata: Metadata = {
 export default function About() {
   return (
     <Transition>
-      <main className="page">
-        <Grimoire />
+      <main id="ippbook">
+        <IllustratedScene />
       </main>
     </Transition>
   );

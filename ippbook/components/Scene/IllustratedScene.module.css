@@ -1,0 +1,28 @@
+.scene{height:100svh;min-height:100svh;width:100%;display:flex;align-items:center;justify-content:center;background:#04090d;overflow:hidden}
+.stage{--mx:0;--my:0;position:relative;width:100%;height:100svh;flex-shrink:0;isolation:isolate;perspective:900px;overflow:hidden}
+.backdrop{position:absolute;inset:0;background:url('/assets/gothic-hall-table.png') center/cover no-repeat;transform:translate(calc(var(--mx)*-3px),calc(var(--my)*-2px));transition:transform .15s ease-out}
+.atmosphere{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 70%,transparent 25%,#01060b55 100%);pointer-events:none}
+.art{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none;overflow:visible;transform:rotateY(calc(var(--mx)*1.4deg)) rotateX(calc(var(--my)*-.8deg));transition:transform .15s ease-out}
+.surfaceLight{transform:translate(calc(var(--mx)*4px),calc(var(--my)*2px));mix-blend-mode:screen}
+.rearObjects{transform:translate(calc(var(--mx)*9px),calc(var(--my)*4px))}
+.bookLayer{transform:translate(calc(var(--mx)*-3px),calc(var(--my)*-2px))}
+.frontObjects{transform:translate(calc(var(--mx)*18px),calc(var(--my)*8px))}
+.book{cursor:pointer;outline:none;pointer-events:auto}
+.book:focus-visible,.book:hover{filter:drop-shadow(0 0 5px #ffe4a066)}
+.flame{animation:flicker 2.7s infinite alternate ease-in-out;filter:drop-shadow(0 0 5px #ffaf44)}
+.lightSpill{animation:breathe 3.1s infinite alternate ease-in-out;mix-blend-mode:screen}
+.pumpkin{animation:ember 3.7s infinite alternate ease-in-out}
+@keyframes flicker{0%,100%{transform:skewX(-3deg) scaleY(.95);opacity:.92}23%{transform:skewX(5deg) scaleY(1.06);opacity:1}51%{transform:skewX(-5deg) scaleY(.9);opacity:.87}78%{transform:skewX(2deg) scaleY(1.03);opacity:1}}
+@keyframes breathe{from{opacity:.62}to{opacity:1}}
+@keyframes ember{from{filter:brightness(.95)}to{filter:brightness(1.07)}}
+
+@media(prefers-reduced-motion:reduce){.flame,.lightSpill,.pumpkin{animation:none}.art,.backdrop,.surfaceLight,.rearObjects,.bookLayer,.frontObjects{transform:none}}
+
+.candleLayer{transform:translate(calc(var(--mx)*-3px),calc(var(--my)*-2px))}
+@media(prefers-reduced-motion:reduce){.candleLayer{transform:none}}
+
+.chandelierLayer{transform:translate(calc(var(--mx)*12px),calc(var(--my)*6px));filter:drop-shadow(4px 7px 4px #0009)}
+@media(prefers-reduced-motion:reduce){.chandelierLayer{transform:none}}
+
+.skeletonLayer{transform:translate(calc(var(--mx)*-3px),calc(var(--my)*-2px));filter:drop-shadow(3px 4px 3px #0007)}
+@media(prefers-reduced-motion:reduce){.skeletonLayer{transform:none}}
