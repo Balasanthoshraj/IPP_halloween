@@ -1,16 +1,19 @@
-/* Events: one frosted-glass panel over the study-room plate (the categories on its left, the event cards on its right), and the
-   event popup. Nothing is blurred while it runs: .ev-blur is a pre-blurred copy of the plate, clipped to the panel's rectangle. */
+/* Events: the study-room plate with the event cards on one frosted-glass panel and the categories beside it, and the event popup.
+   Nothing is blurred while it runs: .ev-blur is a pre-blurred copy of the plate, clipped to the glass's rectangle (.ev-glass). */
 .ev {
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --orange: #f28a2e;
   --cream: #fff4de;
-  /* the panel's edges: the left one leaves the window and the witch in view, the top one clears the nav pill */
+  /* the shell holds both columns: its left edge leaves the window and the witch in view, its top clears the nav pill */
   --gl: clamp(12px, 12.7vw, 260px);
   --gr: clamp(12px, 1.5vw, 40px);
   --gt: clamp(64px, 9.5svh, 104px);
   --gb: clamp(12px, 4svh, 44px);
   --r: 28px;
   --gap: 12px;
+  --tabs: clamp(150px, calc((100vw - var(--gl) - var(--gr) - 30px) * 0.19), 290px); /* the category column: 19% of the shell inside its padding */
+  --colgap: clamp(12px, 2vw, 30px);
+  --glx: calc(var(--gl) + var(--tabs) + var(--colgap)); /* the glass covers the events only, from 15px before the first card */
   color-scheme: dark;
   background: #050818;
   color: var(--cream);
@@ -29,21 +32,27 @@
 }
 
 .ev-blur {
-  clip-path: inset(var(--gt) var(--gr) var(--gb) var(--gl) round var(--r));
+  clip-path: inset(var(--gt) var(--gr) var(--gb) var(--glx) round var(--r));
 }
 
-/* the glass: a light tint and a hairline rim over the blurred plate, 15px of it around the two columns */
+/* the glass: a light tint and a hairline rim over the blurred plate, with 15px of it around the cards (the shell's padding) */
+.ev-glass {
+  position: absolute;
+  inset: var(--gt) var(--gr) var(--gb) var(--glx);
+  border-radius: var(--r);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05) 42%, rgba(255, 255, 255, 0.09));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 30px 80px -24px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
 .ev-shell {
   position: absolute;
   inset: var(--gt) var(--gr) var(--gb) var(--gl);
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: clamp(150px, 19%, 290px) minmax(0, 1fr);
-  gap: clamp(12px, 2vw, 30px);
+  grid-template-columns: var(--tabs) minmax(0, 1fr);
+  gap: var(--colgap);
   padding: 15px;
-  border-radius: var(--r);
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05) 42%, rgba(255, 255, 255, 0.09));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 30px 80px -24px rgba(0, 0, 0, 0.7);
 }
 
 /* ---- categories ---- */
@@ -128,9 +137,7 @@
 
 .ev-head h1 {
   margin: 0;
-  font: 700 clamp(32px, 3.7vw, 64px) / 1 var(--font-teko), sans-serif;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  font: 400 clamp(32px, 3.7vw, 64px) / 1 var(--font-pirata), serif; /* the face of the Contact page's heading */
   color: #fbf1de;
   text-shadow: 0 3px 0 rgba(120, 52, 14, 0.45), 0 8px 26px rgba(0, 0, 0, 0.55);
 }
@@ -229,6 +236,22 @@
   user-select: none;
 }
 
+/* the same card drawn with a small icon, for the strips: it covers the full one and fades away as the card opens */
+.ev-tab-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 0.5s ease 0.1s;
+}
+
+.ev-slot[data-open] .ev-tab-art {
+  opacity: 0;
+}
+
 /* a light wash on hover, and the card's colour as a ring, both above the art and the text */
 .ev-card::before {
   content: "";
@@ -268,20 +291,31 @@
   outline-offset: 3px;
 }
 
-/* the name on a strip, up the side; it grows with the strip's resting width (a row of three has room for more than a row of eight) */
+/* The name on a strip: up the side, big, and centred low on it, over the dark of the castle. A long name takes a second line.
+   Its size follows the strip's height, and gives way if the strip is too narrow for two lines (--w: the strip's resting width). */
 .ev-fold {
+  --w: calc((100cqw - (var(--n) - 1) * var(--gap)) / var(--n));
+  --fs: clamp(20px, min(5.8cqh, calc((var(--w) - 10px) / 2.1)), 46px);
   position: absolute;
   z-index: 2;
   left: 50%;
-  bottom: 18px;
-  font: 600 clamp(17px, calc((100cqw - (var(--n) - 1) * var(--gap)) / var(--n) * 0.09), 30px) / 1 var(--font-teko), sans-serif;
-  letter-spacing: 0.06em;
+  top: 71%;
+  height: max-content;
+  max-height: 46%; /* a line this long takes "THE OPTIMIZATION" and leaves "ARENA" for a second */
+  font: 700 var(--fs) / 1 var(--font-teko), sans-serif;
+  letter-spacing: 0.02em;
+  text-align: center;
   text-transform: uppercase;
-  white-space: nowrap;
+  text-wrap: balance;
   writing-mode: vertical-rl;
-  transform: translateX(-50%) rotate(180deg);
-  text-shadow: 0 0 5px #000, 0 0 12px rgba(0, 0, 0, 0.9), 0 2px 14px rgba(0, 0, 0, 0.8);
-  transition: opacity 0.35s ease 0.2s;
+  transform: translate(-50%, -50%) rotate(180deg);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7), 0 0 14px rgba(0, 0, 0, 0.6);
+  transition: opacity 0.35s ease 0.2s, font-size 0.65s var(--ease);
+}
+
+/* with a card open the others are narrow strips, so the names shrink to fit them */
+.ev-list:has(.ev-slot[data-open]) .ev-fold {
+  --w: calc((100cqw - (var(--n) - 1) * var(--gap) - var(--e)) / (var(--n) - 1));
 }
 
 .ev-slot[data-open] .ev-fold {
@@ -581,7 +615,7 @@
   color: #3d7bff;
 }
 
-/* ---- narrow screens: the categories become a row above the cards, and the cards stack ---- */
+/* ---- narrow screens: the categories become a row above the cards, the cards stack, and the glass takes in the whole shell ---- */
 @media (max-width: 859px) {
   .ev {
     --gl: 12px;
@@ -589,6 +623,7 @@
     --gt: 64px;
     --gb: 12px;
     --r: 24px;
+    --glx: var(--gl);
   }
 
   .ev-shell {
@@ -640,11 +675,17 @@
     transition-delay: 0.1s;
   }
 
+  /* the strip's art is not used here (see .ev-art) */
+  .ev-tab-art {
+    display: none;
+  }
+
   .ev-fold {
     top: 50%;
-    bottom: auto;
     left: 18px;
-    font-size: 22px;
+    max-height: none;
+    font-size: 28px;
+    text-align: left;
     writing-mode: horizontal-tb;
     transform: translateY(-50%);
   }

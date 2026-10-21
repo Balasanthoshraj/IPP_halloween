@@ -187,7 +187,7 @@ body {
   pointer-events: none;
 }
 
-/* Nav: a frosted pill that lands once the title has (Stage sets html[data-nav]). */
+/* Nav: a frosted pill that arrives once the page has hydrated (Nav sets data-page). */
 .nav {
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   position: fixed;
@@ -209,7 +209,6 @@ body {
   transition: opacity 0.3s ease, transform 0.4s ease, visibility 0s linear 0.4s;
 }
 
-html[data-nav] .nav,
 .nav[data-page] {
   opacity: 1;
   visibility: visible;
@@ -234,7 +233,6 @@ html[data-nav] .nav,
   transition: opacity 0.25s ease, transform 0.25s ease, filter 0.25s ease;
 }
 
-html[data-nav] .nav li,
 .nav[data-page] li {
   --delay: calc(0.28s + var(--i) * 0.06s);
   opacity: 1;
@@ -281,7 +279,6 @@ html[data-nav] .nav li,
   transition: opacity 0.6s ease 0.5s;
 }
 
-html[data-nav] .nav-pill,
 .nav[data-page] .nav-pill {
   opacity: 1;
 }

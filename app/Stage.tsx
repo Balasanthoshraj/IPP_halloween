@@ -36,21 +36,11 @@ export default function Stage({ children }: { children: ReactNode }) {
     let quality = 1;
     let avg = 1 / 60;
     let counted = 0;
-    let navOn = false;
-    let onScreen = true; // the loop sleeps while the stage is scrolled out of view (the sponsors are below it)
 
     const fit = () => renderer?.resize(stage.clientWidth, stage.clientHeight, quality);
     const measure = () => {
       const span = root.offsetHeight - innerHeight;
       target = still || span <= 0 ? 1 : clamp(-root.getBoundingClientRect().top / span);
-    };
-    // the nav follows the last title line (fully in at 0.92); the gap keeps it from flickering at the edge
-    const land = (at: number) => {
-      const landed = at > (navOn ? 0.9 : 0.925);
-      if (landed !== navOn) {
-        navOn = landed;
-        document.documentElement.toggleAttribute("data-nav", navOn);
-      }
     };
     const paint = (now: number) => {
       renderer!.draw({ t: still ? 0 : now / 1000, p, mx, my, hand: smoothstep(0.52, 0.8, p) });
@@ -59,10 +49,9 @@ export default function Stage({ children }: { children: ReactNode }) {
       ttl.style.setProperty("--t2", smoothstep(0.75, 0.85, p).toFixed(3));
       ttl.style.setProperty("--t3", smoothstep(0.8, 0.92, p).toFixed(3));
       hint.style.setProperty("--hint", (1 - smoothstep(0, 0.06, p)).toFixed(3));
-      land(p);
     };
     const tick = (now: number) => {
-      raf = onScreen ? requestAnimationFrame(tick) : 0;
+      raf = requestAnimationFrame(tick);
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       p += (target - p) * (1 - Math.exp(-dt * 7));
@@ -99,7 +88,6 @@ export default function Stage({ children }: { children: ReactNode }) {
     };
 
     measure();
-    land(target); // arriving at the finished title (Home from another page): the nav is there before the scene has loaded
 
     createRenderer(canvas).then((r) => {
       if (!alive) return;
@@ -114,29 +102,15 @@ export default function Stage({ children }: { children: ReactNode }) {
         raf = requestAnimationFrame(tick);
       }
     });
-    // (isIntersecting stays true while the stage's edge merely touches the screen, which is exactly where the page ends)
-    const visibility = new IntersectionObserver(
-      ([entry]) => {
-        onScreen = entry.intersectionRatio > 0;
-        if (onScreen && renderer && !still && !raf) {
-          last = performance.now();
-          raf = requestAnimationFrame(tick);
-        }
-      },
-      { threshold: [0, 0.001] },
-    );
-    visibility.observe(stage);
     addEventListener("scroll", onScroll, { passive: true });
     addEventListener("resize", onResize);
     addEventListener("pointermove", onMove, { passive: true });
     return () => {
       alive = false;
-      visibility.disconnect();
       cancelAnimationFrame(raf);
       removeEventListener("scroll", onScroll);
       removeEventListener("resize", onResize);
       removeEventListener("pointermove", onMove);
-      document.documentElement.removeAttribute("data-nav");
     };
   }, []);
 

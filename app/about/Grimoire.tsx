@@ -5,9 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import { CLOSED, GLOWS, OPEN, PAGE, REST, SCENE, SRC, TEXT } from "./art";
 import "./about.css";
 
-// The About page: a closed spell book on a lectern in the castle. Click it and it lifts, swings open and two leaves
-// turn to the pages that carry the text; click anywhere outside the book and it closes again.
-// One clock `u` (0 closed .. 1 open) drives every piece, so the animation can be reversed or interrupted at any frame.
+// The About page: a closed spell book on a lectern in the castle. Click it and it lifts, swings open and the cover and a leaf turn
+// to the first spread, ISTA; the arrows turn the next leaf over to the second, I++. Each section's text runs across the two pages
+// of its spread. Click anywhere outside the book and it closes again.
+// One clock `u` (0 closed .. 1 open) drives the opening, and another, `v` (0 .. 1), the turn of the second leaf, so the animation
+// can be reversed or interrupted at any frame.
 
 type Phase = "closed" | "opening" | "open" | "closing";
 
@@ -20,10 +22,14 @@ const IPP = [
   "Held every year in the odd semester, I++ is the intra-college symposium held by ISTA.",
   "With a footfall of about 800 odd students every year, we strive hard to do our part in bringing together the student community of not just our department, but the entire community at the College of Engineering, Guindy.",
 ];
+const ISTA_URL = "https://istaceg.in/";
 
 const LEAF_W = 645; // a turning leaf spans from the hinge to the right edge of the right page
 const OPEN_MS = 2600;
 const CLOSE_MS = 1500;
+const TURN_MS = 1000; // the second leaf turning over
+const READY_MS = 2500; // the book and its hint are shown by this long after the page mounts, whatever is still decoding or warming up
+const GAP = 80; // between a section's two columns (only the width of the strip they are laid out in)
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const seg = (u: number, a: number, b: number) => clamp01((u - a) / (b - a));
@@ -57,19 +63,27 @@ const soft = bezier(0.4, 0, 0.2, 1);
 // open-book units -> a length that scales with the book (--px is set on .gr-book)
 const px = (n: number) => `calc(${n} * var(--px))`;
 
-function Text({ x, y, w, title, lines, first }: { x: number; y: number; w: number; title: string; lines: string[]; first: number }) {
+// One page's window onto a section's text. The text is laid out once in two balanced columns, and the page on the left of the
+// spread shows the first column, the page on the right the second (each page draws the whole text and clips to its column).
+// `spread` and `side` tell the reveal in apply() when to fade it in.
+function Flow({ spread, side, x, w, h, title, paras, link }: { spread: 0 | 1; side: 0 | 1; x: number; w: number; h: number; title: string; paras: string[]; link?: string }) {
   return (
-    <div className="gr-text" aria-hidden="true" style={{ left: px(x), top: px(y), width: px(w) }}>
-      <h2 className="gr-h" data-r={first}>
-        {title}
-      </h2>
-      <p className="gr-p">
-        {lines.map((t, i) => (
-          <span key={i} data-r={first + 1 + i}>
-            {t}{" "}
-          </span>
+    <div className="gr-flow" aria-hidden="true" data-s={spread} data-side={side} style={{ left: px(x), top: px(TEXT.left.y), width: px(w), height: px(h) }}>
+      <div className="gr-cols" style={{ left: px(-side * (w + GAP)), width: px(2 * w + GAP), columnGap: px(GAP) }}>
+        <h2 className="gr-h">{title}</h2>
+        {paras.map((t, i) => (
+          <p className="gr-p" key={i}>
+            {t}
+          </p>
         ))}
-      </p>
+        {link && (
+          <p className="gr-p gr-link">
+            <a href={link} target="_blank" rel="noopener noreferrer" tabIndex={-1}>
+              {link}
+            </a>
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -80,8 +94,9 @@ export default function Grimoire() {
   const root = useRef<HTMLElement>(null);
   const [phase, setPhase] = useState<Phase>("closed");
   const [ready, setReady] = useState(false);
-  const [page, setPage] = useState(0); // phones show one page at a time
-  const ctl = useRef<{ open(): void; close(): void; go(p: number): void }>({ open() {}, close() {}, go() {} });
+  const [page, setPage] = useState(0); // the page in view, 0..3: a phone steps through all four, a wide screen shows a spread at a time (0 or 2)
+  const [lastPage, setLastPage] = useState(2);
+  const ctl = useRef<{ open(): void; close(): void; step(d: number): void }>({ open() {}, close() {}, step() {} });
 
   useEffect(() => {
     const el = root.current!;
@@ -89,15 +104,17 @@ export default function Grimoire() {
     const book = q(".gr-book"), dim = q(".gr-dim"), base = q(".gr-base"), hit = q(".gr-hit");
     const flips = [q(".gr-cover"), q(".gr-leaf1"), q(".gr-leaf2")];
     const faces = flips.map((f) => [...f.querySelectorAll<HTMLElement>(".gr-face")]);
-    const reveal = [...el.querySelectorAll<HTMLElement>("[data-r]")].sort((a, b) => Number(a.dataset.r) - Number(b.dataset.r));
+    const reveal = [...el.querySelectorAll<HTMLElement>("[data-s]")].map((n) => ({ n, spread: Number(n.dataset.s), side: Number(n.dataset.side) }));
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const ac = new AbortController();
     const { signal } = ac;
 
     const g = { vw: 0, vh: 0, S: 1, ox: 0, oy: 0, k: 1, phone: false };
-    let u = 0, target = 0, hover = 0, hoverTo = 0, pan = 0, panTo = 0, raf = 0, last = 0;
+    let u = 0, target = 0, v = 0, vTo = 0, hover = 0, hoverTo = 0, pan = 0, panTo = 0, raf = 0, last = 0, cur = 0;
     let state: Phase = "closed";
     let warming = false;
+    let cancelled = false;
+    let shown = false;
     const settle = (p: Phase) => { state = p; setPhase(p); };
 
     const measure = () => {
@@ -108,7 +125,7 @@ export default function Grimoire() {
       g.oy = (g.vh - SCENE.h * g.S) / 2;
       g.phone = g.vw < 800 || g.vw / g.vh < 1.1;
       // k = css pixels per open-book unit when fully open; phones fit one page across the screen
-      g.k = g.phone ? Math.min((0.96 * g.vw) / 640, (0.86 * g.vh) / 860) : Math.min((0.94 * g.vw) / 1524, (0.9 * g.vh) / 1002);
+      g.k = g.phone ? Math.min((0.96 * g.vw) / 640, (0.86 * g.vh) / 860) : Math.min((0.94 * g.vw) / 1524, (0.82 * g.vh) / 1002); // 0.82: room below for "Tap to close"
       book.style.setProperty("--k", String(g.k));
     };
 
@@ -134,7 +151,7 @@ export default function Grimoire() {
       const tShift = swing(seg(u, 0.2, 0.54));
       const tCover = swing(seg(u, 0.22, 0.52));
       const tL1 = turn(seg(u, 0.48, 0.68));
-      const tL2 = turn(seg(u, 0.58, 0.78));
+      const tL2 = turn(v); // the second leaf is turned by the arrows, not by opening the book
 
       const rest = 1 - tLift;
       const hv = hover * rest;
@@ -161,8 +178,9 @@ export default function Grimoire() {
         faces[i][1].style.visibility = a < 90 ? "hidden" : "visible";
       });
 
-      reveal.forEach((n, i) => {
-        const t = soft(seg(u, 0.75 + i * 0.02, 0.86 + i * 0.02));
+      // the first spread's text arrives as the book finishes opening, the second's as its leaf lands; the left page a beat ahead
+      reveal.forEach(({ n, spread, side }) => {
+        const t = spread === 0 ? soft(seg(u, 0.75 + side * 0.04, 0.88 + side * 0.04)) : soft(seg(v, 0.55 + side * 0.08, 0.8 + side * 0.08));
         n.style.opacity = String(t);
         n.style.transform = `translateY(${(1 - t) * 8}px)`;
       });
@@ -172,12 +190,16 @@ export default function Grimoire() {
       raf = requestAnimationFrame(tick);
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      const rate = target > u ? 1000 / OPEN_MS : 1000 / CLOSE_MS;
-      u = target > u ? Math.min(target, u + rate * dt) : Math.max(target, u - rate * dt);
+      v = vTo > v ? Math.min(vTo, v + (dt * 1000) / TURN_MS) : Math.max(vTo, v - (dt * 1000) / TURN_MS);
+      if (!(target < u && v > 0)) {
+        // (a leaf turned onto the left is put back first, before the book closes)
+        const rate = target > u ? 1000 / OPEN_MS : 1000 / CLOSE_MS;
+        u = target > u ? Math.min(target, u + rate * dt) : Math.max(target, u - rate * dt);
+      }
       hover += (hoverTo - hover) * (1 - Math.exp(-dt * 9));
       pan += (panTo - pan) * (1 - Math.exp(-dt * 7));
       if (u === target && state !== (target ? "open" : "closed")) settle(target ? "open" : "closed");
-      if (u === target && Math.abs(hoverTo - hover) < 0.002 && Math.abs(panTo - pan) < 0.002) {
+      if (u === target && v === vTo && Math.abs(hoverTo - hover) < 0.002 && Math.abs(panTo - pan) < 0.002) {
         hover = hoverTo;
         pan = panTo;
         cancelAnimationFrame(raf);
@@ -188,6 +210,7 @@ export default function Grimoire() {
     const run = () => {
       if (still) {
         u = target;
+        v = vTo;
         pan = panTo;
         apply();
         settle(target ? "open" : "closed");
@@ -197,10 +220,38 @@ export default function Grimoire() {
       }
     };
 
+    // ends the invisible warm-up (the book is wanted now) and puts the closed book back
+    const endWarm = () => {
+      if (!warming) return;
+      warming = false;
+      if (state === "closed") u = v = 0;
+      apply();
+      delete el.dataset.warm;
+    };
+    // fades the book and its hint in and lets it be opened
+    const show = () => {
+      if (shown || cancelled) return;
+      shown = true;
+      endWarm();
+      setReady(true);
+    };
+
+    // the page in view, 0..3: the second leaf has turned for 2 and 3, and on a phone the left page is 0 and 2, the right 1 and 3
+    const go = (p: number) => {
+      cur = p;
+      setPage(p);
+      vTo = p >= 2 ? 1 : 0;
+      panTo = p % 2;
+      run();
+    };
     ctl.current = {
-      open() { if (state === "closed" || state === "closing") { target = 1; panTo = 0; setPage(0); settle("opening"); run(); } },
-      close() { if (state === "open" || state === "opening") { target = 0; settle("closing"); run(); } },
-      go(p) { if (state === "open") { panTo = p; setPage(p); run(); } },
+      open() { if (state === "closed" || state === "closing") { show(); target = 1; cur = 0; vTo = 0; panTo = 0; setPage(0); setLastPage(g.phone ? 3 : 2); settle("opening"); run(); } },
+      close() { if (state === "open" || state === "opening") { target = 0; vTo = 0; settle("closing"); run(); } },
+      step(d) {
+        if (state !== "open") return;
+        const to = Math.min(g.phone ? 3 : 2, Math.max(0, g.phone ? cur + d : (cur >> 1) * 2 + 2 * d)); // a spread at a time, unless only a page fits
+        if (to !== cur) go(to);
+      },
     };
 
     const over = (on: boolean) => { hoverTo = on ? 1 : 0; if (u === 0) run(); };
@@ -208,14 +259,31 @@ export default function Grimoire() {
     hit.addEventListener("pointerleave", () => over(false), { signal });
     hit.addEventListener("focus", () => over(true), { signal });
     hit.addEventListener("blur", () => over(false), { signal });
-    addEventListener("resize", () => { measure(); apply(); }, { signal });
-    addEventListener("keydown", (e) => { if (e.key === "Escape") ctl.current.close(); }, { signal });
+    addEventListener(
+      "resize",
+      () => {
+        measure();
+        apply();
+        setLastPage(g.phone ? 3 : 2);
+        if (state === "open" && !g.phone && cur % 2) go(cur - 1); // a screen that shows spreads has no half-way page
+      },
+      { signal },
+    );
+    addEventListener(
+      "keydown",
+      (e) => {
+        if (e.key === "Escape") ctl.current.close();
+        else if (e.key === "ArrowRight") ctl.current.step(1);
+        else if (e.key === "ArrowLeft") ctl.current.step(-1);
+      },
+      { signal },
+    );
     // swiping turns pages on phones
     let sx = 0, sy = 0;
     el.addEventListener("pointerdown", (e) => { sx = e.clientX; sy = e.clientY; }, { signal });
     el.addEventListener("pointerup", (e) => {
       const dx = e.clientX - sx, dy = e.clientY - sy;
-      if (g.phone && state === "open" && Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) ctl.current.go(dx < 0 ? 1 : 0);
+      if (g.phone && state === "open" && Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) ctl.current.step(dx < 0 ? 1 : -1);
     }, { signal });
 
     // Paint every layer once, at full size and invisibly, before the book is shown: otherwise each picture is decoded,
@@ -225,27 +293,29 @@ export default function Grimoire() {
       el.dataset.warm = "";
       warming = true;
       for (const at of [0.26, 1]) {
-        if (cancelled) break;
+        if (!warming || cancelled) break; // cut short by endWarm
         u = at;
+        v = at; // the second leaf too, turned over on the last frame
         apply();
         await frame();
       }
-      warming = false;
-      u = 0;
-      apply();
-      delete el.dataset.warm;
+      endWarm();
     };
 
     measure();
     apply();
-    let cancelled = false;
-    Promise.all(Object.values(SRC).map((src) => { const im = new Image(); im.src = src; return im.decode().catch(() => {}); }))
-      .then(() => (still ? undefined : (document as Document & { activeViewTransition?: { finished: Promise<unknown> } }).activeViewTransition?.finished.catch(() => {}))) // let the page transition finish first
-      .then(() => (still ? undefined : warm()))
-      .then(() => { if (!cancelled) setReady(true); });
+    // Each wait below is capped, and the timer shows the book regardless: on a slow machine the decoding, the page transition and
+    // the warm-up together can take many seconds, and until then the book is invisible and the hint absent.
+    const within = (p: Promise<unknown> | undefined, ms: number) => Promise.race([p, new Promise((r) => setTimeout(r, ms))]);
+    const timer = setTimeout(show, READY_MS);
+    within(Promise.all(Object.values(SRC).map((src) => { const im = new Image(); im.src = src; return im.decode().catch(() => {}); })), 1500)
+      .then(() => (still || shown ? undefined : within((document as Document & { activeViewTransition?: { finished: Promise<unknown> } }).activeViewTransition?.finished.catch(() => {}), 1200))) // let the page transition finish first
+      .then(() => (still || shown ? undefined : warm()))
+      .then(show);
 
     return () => {
       cancelled = true;
+      clearTimeout(timer);
       cancelAnimationFrame(raf);
       ac.abort();
     };
@@ -254,13 +324,19 @@ export default function Grimoire() {
   const hitBox = { left: ((REST.x - 330) / SCENE.w) * 100, top: ((REST.y - 260) / SCENE.h) * 100, width: (660 / SCENE.w) * 100, height: (560 / SCENE.h) * 100 };
   const backLeft = PAGE.left.x - (OPEN.hinge - LEAF_W); // the back of a leaf is mirrored, so its content sits `hinge - LEAF_W` to the left
   const textLeft = TEXT.left.x - (OPEN.hinge - LEAF_W);
+  const { w: tw, h: th } = TEXT.left;
 
   return (
-    <section ref={root} className="gr" data-phase={phase} data-ready={ready || undefined} data-page={page}>
+    <section ref={root} className="gr" data-phase={phase} data-ready={ready || undefined}>
       <h1 className="sr-only">About ISTA</h1>
       <article className="sr-only">
         <h2>ISTA</h2>
         <p>{ISTA.join(" ")}</p>
+        <p>
+          <a href={ISTA_URL} target="_blank" rel="noopener noreferrer">
+            {ISTA_URL}
+          </a>
+        </p>
         <h2>I++</h2>
         <p>{IPP.join(" ")}</p>
       </article>
@@ -281,27 +357,32 @@ export default function Grimoire() {
 
       <div className="gr-cam" aria-hidden="true">
         <div className="gr-book">
+          {/* the second spread's right page (and the right cover) */}
           <div className="gr-base">
             <img className="gr-img" src={SRC.open} alt="" style={{ left: 0, top: 0, width: px(OPEN.w), height: px(OPEN.h) }} />
-            <Text x={TEXT.right.x} y={TEXT.right.y} w={TEXT.right.w} title="I++" lines={IPP} first={4} />
+            <Flow spread={1} side={1} x={TEXT.right.x} w={tw} h={th} title="I++" paras={IPP} />
           </div>
 
+          {/* the second leaf: the first spread's right page, and on its back the second spread's left */}
           <div className="gr-flip gr-leaf2" style={{ left: px(OPEN.hinge), width: px(LEAF_W) }}>
             <div className="gr-face">
               <img className="gr-img" src={SRC.pageR} alt="" style={sprite(PAGE.right, PAGE.right.x - OPEN.hinge)} />
+              <Flow spread={0} side={1} x={TEXT.right.x - OPEN.hinge} w={tw} h={th} title="ISTA" paras={ISTA} link={ISTA_URL} />
             </div>
             <div className="gr-face gr-back">
               <img className="gr-img" src={SRC.pageL} alt="" style={sprite(PAGE.left, backLeft)} />
-              <Text x={textLeft} y={TEXT.left.y} w={TEXT.left.w} title="ISTA" lines={ISTA} first={0} />
+              <Flow spread={1} side={0} x={textLeft} w={tw} h={th} title="I++" paras={IPP} />
             </div>
           </div>
 
+          {/* the first leaf: turned with the cover when the book opens; its back is the first spread's left page */}
           <div className="gr-flip gr-leaf1" style={{ left: px(OPEN.hinge), width: px(LEAF_W) }}>
             <div className="gr-face">
               <img className="gr-img" src={SRC.leafArt} alt="" style={sprite(PAGE.right, PAGE.right.x - OPEN.hinge)} />
             </div>
             <div className="gr-face gr-back">
               <img className="gr-img" src={SRC.pageL} alt="" style={sprite(PAGE.left, backLeft)} />
+              <Flow spread={0} side={0} x={textLeft} w={tw} h={th} title="ISTA" paras={ISTA} link={ISTA_URL} />
             </div>
           </div>
 
@@ -336,11 +417,22 @@ export default function Grimoire() {
         Tap on the book
       </p>
 
-      <div className="gr-pager" aria-hidden={phase !== "open"}>
-        <button type="button" aria-label="Previous page" disabled={page === 0} onClick={() => ctl.current.go(0)}>
+      {/* while the book is open: "Tap to close", with an arrow either side to turn the page */}
+      <div className="gr-bar" data-show={phase === "opening" || phase === "open" || undefined}>
+        <button type="button" className="gr-arrow" aria-label="Previous page" aria-disabled={phase !== "open" || page === 0} onClick={() => ctl.current.step(-1)}>
           ‹
         </button>
-        <button type="button" aria-label="Next page" disabled={page === 1} onClick={() => ctl.current.go(1)}>
+        <button
+          type="button"
+          className="gr-close"
+          onClick={() => {
+            ctl.current.close();
+            root.current?.querySelector<HTMLElement>(".gr-hit")?.focus({ preventScroll: true }); // this button is about to hide
+          }}
+        >
+          Tap to close
+        </button>
+        <button type="button" className="gr-arrow" aria-label="Next page" aria-disabled={phase !== "open" || page >= lastPage} onClick={() => ctl.current.step(1)}>
           ›
         </button>
       </div>

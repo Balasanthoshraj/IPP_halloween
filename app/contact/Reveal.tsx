@@ -30,6 +30,7 @@ export default function Reveal({ children }: { children: ReactNode }) {
       const open = contextSafe!((item: HTMLElement, delay: number) => {
         const card = item.firstElementChild as HTMLElement;
         const seed = items.indexOf(item) + 1;
+        const aspect = item.offsetWidth / item.offsetHeight;
         const at = { p: 0 };
         const tween = gsap.to(at, {
           p: 1,
@@ -37,7 +38,7 @@ export default function Reveal({ children }: { children: ReactNode }) {
           delay,
           ease: "power2.out",
           onUpdate: () => {
-            card.style.clipPath = blob(at.p, tween.time(), seed);
+            card.style.clipPath = blob(at.p, tween.time(), seed, aspect);
           },
           onComplete: () => done(item),
         });

@@ -1,6 +1,5 @@
-// The events, written from the I++ EVENTS 2026 document. The document gives each event's format, rounds, timings and rules; it
-// has no dates, prizes or contact people, and names a venue for only three events, so those are left out (null) and the page
-// says "to be announced". Fill them in here: `date`, `venue`, and optionally `prize` and `contacts`.
+// The events, written from the I++ EVENTS 2026 document, which gives each event's format, rounds, timings and rules. The dates and
+// venues were added afterwards (all on 24 October 2026). A `prize` and `contacts` are still to come: the popup shows them once set.
 export type Category = "technical" | "non-technical";
 export type Line = { label?: string; text: string };
 export type Section = { heading?: string; lines: Line[] };
@@ -26,10 +25,10 @@ export const EVENTS: readonly EventInfo[] = [
     category: "technical",
     tagline: "Basic logic, tested twice.",
     accent: "#9a4df0",
-    date: null,
+    date: "24 October 2026",
     time: "Round 1: 10 am – 1 pm · Round 2: 2 pm – 3:30 pm",
     team: "2 – 3 members",
-    venue: "Classroom",
+    venue: "2nd Floor Classroom, IST dept", // no break inside "IST dept" where the line wraps
     sections: [
       { lines: [{ label: "Introduction", text: "This event focuses on basic logic-building skills. It evaluates problem-solving ability and helps boost placement-related learning." }] },
       {
@@ -55,10 +54,10 @@ export const EVENTS: readonly EventInfo[] = [
     category: "technical",
     tagline: "Bid big. Answer right.",
     accent: "#f8b733",
-    date: null,
+    date: "24 October 2026",
     time: "9:30 am – 3:30 pm, including tie-breakers",
     team: "1 – 2 members",
-    venue: null,
+    venue: "Ground Floor Classroom",
     sections: [
       {
         lines: [
@@ -87,10 +86,10 @@ export const EVENTS: readonly EventInfo[] = [
     category: "technical",
     tagline: "Don’t just solve it. Solve it well.",
     accent: "#2ccbdc",
-    date: null,
+    date: "24 October 2026",
     time: "9:30 am – 3:30 pm",
     team: "2 – 3 members",
-    venue: "Lab",
+    venue: "2nd Floor Lab",
     sections: [
       {
         lines: [
@@ -126,10 +125,10 @@ export const EVENTS: readonly EventInfo[] = [
     category: "technical",
     tagline: "Buy shady code. Fix it fast.",
     accent: "#f1503f",
-    date: null,
+    date: "24 October 2026",
     time: "Round 1: 45 minutes · Round 2: 90 minutes",
     team: "2 – 3 members",
-    venue: null,
+    venue: "1st Floor Lab",
     sections: [
       {
         lines: [
@@ -165,10 +164,10 @@ export const EVENTS: readonly EventInfo[] = [
     category: "technical",
     tagline: "From SELECT to solved.",
     accent: "#31d58f",
-    date: null,
+    date: "24 October 2026",
     time: "9:00 am – 4:00 pm",
     team: "1 – 2 members",
-    venue: null,
+    venue: "2nd Floor Lab",
     sections: [
       {
         lines: [
@@ -201,10 +200,10 @@ export const EVENTS: readonly EventInfo[] = [
     category: "non-technical",
     tagline: "Who killed the mango milkshake?",
     accent: "#e84fae",
-    date: null,
+    date: "24 October 2026",
     time: "60 – 75 minutes, depending on team speed",
     team: "3 – 5 members",
-    venue: null,
+    venue: "1st Floor Classroom",
     sections: [
       {
         lines: [
@@ -240,10 +239,10 @@ export const EVENTS: readonly EventInfo[] = [
     category: "non-technical",
     tagline: "Quiz it. Bid it. Build it.",
     accent: "#4f80ff",
-    date: null,
+    date: "24 October 2026",
     time: "Round 1: 30 minutes · Round 2: 1.5 hours",
     team: "2 – 3 members",
-    venue: null,
+    venue: "2nd Floor Classroom, IST dept", // no break inside "IST dept" where the line wraps
     sections: [
       {
         lines: [
@@ -277,7 +276,7 @@ export const EVENTS: readonly EventInfo[] = [
     category: "non-technical",
     tagline: "A carnival of riddles.",
     accent: "#ff8133",
-    date: null,
+    date: "24 October 2026",
     time: "Round 1: any time 10 am – 1 pm · Round 2: 1 hour",
     team: "2 – 4 members",
     venue: "Ada Lovelace Auditorium",

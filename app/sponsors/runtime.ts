@@ -662,11 +662,11 @@ async function build(renderer: THREE.WebGLRenderer, options: Options, assets: As
   const pickable = hangers.flatMap((h) => h.picks);
   const owner = new Map(hangers.flatMap((h) => h.picks.map((mesh) => [mesh, h] as const)));
 
-  // ---- layout: evenly spaced anchors across the canvas, two rows on a narrow screen --------------------------------
+  // ---- layout: evenly spaced anchors across the canvas, four in a row on a landscape one, otherwise two rows of two ----------------
   const view = { width: size.width, height: size.height };
   let spacing = SPACING_MIN; // world distance between neighbouring anchors
   const layout = () => {
-    const cols = view.width >= 900 ? 4 : 2;
+    const cols = view.width > view.height * 1.3 ? 4 : 2; // sponsors.css makes the same choice for the section's height
     const rows = hangers.length / cols;
     const px = Math.min(view.width / (cols * SPACING_MIN), view.height / (rows * ROW)); // pixels per world unit
     const viewH = view.height / px;
@@ -680,7 +680,7 @@ async function build(renderer: THREE.WebGLRenderer, options: Options, assets: As
     hangers.forEach((h, i) => {
       const col = i % cols;
       const row = Math.floor(i / cols);
-      const y = row === 0 ? viewH / 2 + 0.25 : viewH / 2 - (row * viewH) / rows; // row 0 hangs from above the canvas: from the home page
+      const y = row === 0 ? viewH / 2 + 0.25 : viewH / 2 - (row * viewH) / rows; // row 0 hangs from above the canvas
       h.sim.anchor.set(-viewW / 2 + ((col + 0.5) * viewW) / cols, y, i * 0.04);
       h.sim.grab = null;
       placeHanging(h.sim);

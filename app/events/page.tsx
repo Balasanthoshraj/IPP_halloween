@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { preload } from "react-dom";
 import Transition from "../Transition";
 import Explorer from "./Explorer";
-import { chakra, teko } from "./fonts";
+import { chakra, pirata, teko } from "./fonts";
 import "./events.css";
 
 export const metadata: Metadata = {
@@ -19,9 +19,10 @@ export default function Events() {
 
   return (
     <Transition>
-      <main className={`page ev ${teko.variable} ${chakra.variable}`}>
+      <main className={`page ev ${teko.variable} ${chakra.variable} ${pirata.variable}`}>
         <img className="ev-bg" src={BG} alt="" decoding="async" fetchPriority="high" />
         <img className="ev-blur" src={BLUR} alt="" decoding="async" />
+        <div className="ev-glass" aria-hidden="true" />
         <Explorer />
       </main>
     </Transition>

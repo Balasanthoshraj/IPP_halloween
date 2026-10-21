@@ -140,28 +140,71 @@ const paintBack = (sans: string, display: string) => {
   return canvas;
 };
 
-// webbing: orange with stitched edges and the event name running down it
-const paintStrap = (sans: string) => {
+// webbing: navy with a faint quilted lattice and stitched edges, and down its middle, in the site's orange, dots, crosses, a
+// couple of runes and a bat. One tile is a bit over a strap's length, so a strap shows one bat.
+const BAT = "M0 -26 L6 -18 L10 -26 L13 -12 C22 -22 40 -26 60 -22 C54 -14 54 -6 50 2 C46 -2 40 -2 36 4 C32 -2 24 -2 20 6 C14 2 8 8 0 30 C-8 8 -14 2 -20 6 C-24 -2 -32 -2 -36 4 C-40 -2 -46 -2 -50 2 C-54 -6 -54 -14 -60 -22 C-40 -26 -22 -22 -13 -12 L-10 -26 L-6 -18 Z";
+
+const paintStrap = () => {
   const across = 192;
-  const along = 448;
+  const along = 864; // a multiple of the lattice's 36, so the tile repeats without a seam
   const { canvas, ctx } = newCanvas(across, along);
-  ctx.fillStyle = "#cf5a17";
+  const cloth = ctx.createLinearGradient(0, 0, across, 0);
+  cloth.addColorStop(0, "#0e2140");
+  cloth.addColorStop(0.55, "#132848");
+  cloth.addColorStop(1, "#0f2342");
+  ctx.fillStyle = cloth;
   ctx.fillRect(0, 0, across, along);
-  ctx.fillStyle = "rgba(0, 0, 0, 0.06)";
-  for (let y = 0; y < along; y += 4) ctx.fillRect(0, y, across, 1);
-  ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+  ctx.strokeStyle = "rgba(120, 160, 230, 0.11)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let k = -across; k < along; k += 36) {
+    ctx.moveTo(0, k);
+    ctx.lineTo(across, k + across);
+    ctx.moveTo(0, k + across);
+    ctx.lineTo(across, k);
+  }
+  ctx.stroke();
+  ctx.fillStyle = "rgba(150, 190, 255, 0.3)"; // the light catching the right edge
+  ctx.fillRect(across - 10, 0, 3, along);
+  ctx.fillStyle = "rgba(160, 190, 240, 0.26)";
   for (let y = 0; y < along; y += 14) {
     ctx.fillRect(across * 0.075, y, 2, 8);
-    ctx.fillRect(across * 0.925 - 2, y, 2, 8);
+    ctx.fillRect(across * 0.925 - 6, y, 2, 8);
   }
+
+  const cx = across / 2;
+  ctx.fillStyle = ORANGE;
+  ctx.strokeStyle = ORANGE;
+  ctx.lineCap = "round";
+  ctx.lineWidth = 5;
+  const dot = (y: number) => {
+    ctx.beginPath();
+    ctx.arc(cx, y, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  const cross = (y: number) => {
+    ctx.fillRect(cx - 3, y - 24, 6, 48);
+    ctx.fillRect(cx - 13, y - 11, 26, 6);
+  };
+  const line = (...p: number[]) => {
+    ctx.beginPath();
+    ctx.moveTo(p[0], p[1]);
+    for (let i = 2; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]);
+    ctx.stroke();
+  };
+  [90, 215, 385].forEach(dot);
+  cross(150);
+  cross(470);
   ctx.save();
-  ctx.translate(across / 2, along / 2);
-  ctx.rotate(Math.PI / 2);
-  ctx.fillStyle = "rgba(255, 241, 220, 0.92)";
-  ctx.font = `700 ${across * 0.23}px ${sans}`;
-  ctx.textBaseline = "middle";
-  drawSpaced(ctx, "ISTA · i++26", 0, 0, 5);
+  ctx.translate(cx, 300);
+  ctx.fill(new Path2D(BAT));
   ctx.restore();
+  line(cx, 520, cx, 552, cx, 536); // an algiz and a mannaz
+  line(cx - 11, 520, cx, 536, cx + 11, 520);
+  line(cx - 11, 586, cx - 11, 618);
+  line(cx + 11, 586, cx + 11, 618);
+  line(cx - 11, 586, cx, 604, cx + 11, 586);
+  dot(650);
   return { canvas, tileRatio: along / across };
 };
 
@@ -199,7 +242,7 @@ const paintAll = async (sponsors: readonly Sponsor[]): Promise<Sources> => {
     faces.push(paintFront(sponsors[i], logos[i], sans, labelSize));
     await breathe();
   }
-  const strap = paintStrap(sans);
+  const strap = paintStrap();
   return { faces, back: paintBack(sans, display), strap: strap.canvas, tileRatio: strap.tileRatio };
 };
 

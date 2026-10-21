@@ -2,9 +2,8 @@
 // so it spreads like spilled liquid. This is what DiMaac's LiquidImageReveal draws with an SVG turbulence filter; a
 // clip-path polygon looks the same and is far cheaper to paint, which matters on phones.
 
-const W = 1548; // the card art's size; the polygon is in percent of the card, so it fits whatever size the card is shown at
-const H = 412;
-const REACH = 930; // radius at the end: the middle is 801 from a corner, and the edge can pull back by AMP
+const W = 1548; // the card art's width, the unit everything here is measured in; the polygon is in percent of the item, so it fits whatever size it is shown at
+const CARD = 1548 / 412; // a card's width over its height; a taller item (the sign) says its own to blob()
 const AMP = 115; // how far the noise pushes the edge, in card units
 const STEP = 12; // distance between outline points
 const TAU = Math.PI * 2;
@@ -36,9 +35,11 @@ function fbm(x: number, y: number, seed: number) {
   return (noise(x / 170, y / 170, seed) + 0.7 * noise(x / 85 + 17.3, y / 85 + 9.1, seed + 1) + 0.45 * noise(x / 42 + 3.7, y / 42 + 21.9, seed + 2)) / 2.15;
 }
 
-// p: 0 (nothing) to 1 (the whole card), t: seconds since it started (the edge slowly churns), seed: any integer, one per card
-export function blob(p: number, t: number, seed: number) {
-  const R = REACH * p;
+// p: 0 (nothing) to 1 (the whole card), t: seconds since it started (the edge slowly churns), seed: any integer, one per card,
+// aspect: the item's width over its height
+export function blob(p: number, t: number, seed: number, aspect = CARD) {
+  const H = W / aspect;
+  const R = (Math.hypot(W / 2, H / 2) + AMP + 14) * p; // the end is past the corners (801 away on a card), and the edge can pull back by AMP
   if (R < 1) return CLOSED;
   const n = Math.min(480, Math.max(48, Math.round((R * TAU) / STEP)));
   const amp = Math.min(AMP, R * 0.5); // a young blob stays round

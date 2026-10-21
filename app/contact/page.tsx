@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- two pre-sized webp files in public/art/contact */
 import type { Metadata } from "next";
 import { preload } from "react-dom";
-import { TEAM } from "./data";
+import { REACH, TEAM } from "./data";
 import { chakra, mono, pirata } from "./fonts";
 import Reveal from "./Reveal";
 import "./contact.css";
@@ -43,6 +43,24 @@ export default function Contact() {
             </div>
           </li>
         ))}
+        <li className="tm-item tm-sign" data-reveal="pending">
+          <div className="tm-card">
+            <img className="tm-frame" src={REACH.src} alt="Reach us" width={REACH.width} height={REACH.height} loading="lazy" decoding="async" />
+            {REACH.notes.map(({ name, href, box: [left, top, width, height] }) => {
+              const web = href.startsWith("http");
+              return (
+                <a
+                  className="tm-note"
+                  key={href}
+                  href={href}
+                  aria-label={web ? `${name} (opens in a new tab)` : name}
+                  {...(web && { target: "_blank", rel: "noopener noreferrer" })}
+                  style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` }}
+                />
+              );
+            })}
+          </div>
+        </li>
       </Reveal>
       <noscript>
         <style>{`.tm-item[data-reveal] .tm-card{clip-path:none}`}</style>

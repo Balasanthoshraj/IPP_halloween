@@ -104,6 +104,28 @@
   inset: 0;
 }
 
+/* the "Reach us" sign under the cards: it opens the same way, is a little wider, and its three notes are links */
+.tm-sign {
+  width: min(100%, max(50vw, 600px), 900px);
+  aspect-ratio: 1400 / 635;
+}
+
+.tm-note {
+  position: absolute;
+  border-radius: 14px;
+}
+
+@media (hover: hover) {
+  .tm-note:hover {
+    background: rgba(255, 236, 200, 0.14);
+  }
+}
+
+.tm-note:focus-visible {
+  outline: 2px solid #ffb25a;
+  outline-offset: 3px;
+}
+
 /* shut until Reveal opens it (a script-less visitor gets the noscript rule in page.tsx instead) */
 .tm-item[data-reveal="pending"] .tm-card {
   clip-path: polygon(50% 50%, 50% 50%, 50% 50%);

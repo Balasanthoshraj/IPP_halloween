@@ -25,10 +25,10 @@ export const PAGE = {
   right: { x: 809, y: 62, w: 602, h: 799 },
 };
 
-// where the text goes, in open-book units
+// where the text goes, in open-book units: each page's window onto its text (a section's text runs across the two pages of a spread)
 export const TEXT = {
-  left: { x: 228, y: 162, w: 440 },
-  right: { x: 870, y: 162, w: 441 },
+  left: { x: 228, y: 162, w: 440, h: 650 },
+  right: { x: 870, y: 162, w: 440, h: 650 },
 };
 
 // where the closed book rests on the lectern, in scene pixels

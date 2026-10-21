@@ -168,6 +168,7 @@
 .gr-face {
   position: absolute;
   inset: 0;
+  isolation: isolate; /* without it a click on the page lands on its picture, never on the link in front of it */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -184,20 +185,30 @@
   -webkit-user-drag: none;
 }
 
-/* ink on parchment */
-.gr-text {
+/* Ink on parchment. A .gr-flow is one page's window onto a section's text and fades in as one piece. Inside it, .gr-cols lays the text
+   out once in two balanced columns; Grimoire.tsx sizes it to two page-widths and shifts it, so the left page shows the first column
+   and the right page (which draws the same text) the second. */
+.gr-flow {
   position: absolute;
+  overflow: hidden;
   color: #2a160a;
   font-family: var(--font-fell), "Iowan Old Style", Georgia, serif;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.gr-cols {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  column-count: 2;
 }
 
 .gr-h {
   margin: 0;
   text-align: center;
-  font: 400 calc(66 * var(--px)) / 1 var(--font-canticle), Georgia, serif;
+  font: 400 calc(72 * var(--px)) / 1 var(--font-canticle), Georgia, serif;
   letter-spacing: 0.04em;
-  opacity: 0;
-  will-change: opacity, transform;
 }
 
 .gr-h::after {
@@ -211,14 +222,34 @@
 
 .gr-p {
   margin: 0;
-  font-size: calc(28 * var(--px));
+  font-size: calc(36 * var(--px));
   line-height: 1.4;
   text-wrap: pretty;
 }
 
-.gr-p span {
-  opacity: 0;
-  will-change: opacity; /* each sentence fades on its own layer, with no repaint */
+.gr-p + .gr-p {
+  margin-top: calc(22 * var(--px));
+}
+
+/* the address at the end of the ISTA text */
+.gr-p + .gr-link {
+  margin-top: calc(32 * var(--px));
+  break-inside: avoid;
+}
+
+.gr-link a {
+  color: #7a2410;
+  text-decoration: underline;
+  text-decoration-thickness: calc(2 * var(--px));
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .gr-link a:hover {
+    color: #b0360f;
+  }
 }
 
 .gr-hint {
@@ -227,10 +258,11 @@
   bottom: clamp(24px, 7svh, 72px);
   translate: -50% 0;
   margin: 0;
-  padding: 0.6rem 1.05rem;
+  padding: 1.05rem 1.9rem;
   border-radius: 999px;
-  font: 500 0.82rem / 1 var(--font-sans), system-ui, sans-serif;
+  font: 500 1.15rem / 1 var(--font-sans), system-ui, sans-serif;
   letter-spacing: 0.08em;
+  white-space: nowrap;
   color: rgba(255, 255, 255, 0.88);
   background: rgba(14, 16, 32, 0.5);
   box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.18);
@@ -251,36 +283,79 @@
   }
 }
 
-/* phones: one page at a time, with arrows (swiping works too) */
-.gr-pager {
+/* while the book is open: "Tap to close" at the bottom with an arrow either side to turn the page (the arrow keys and, on phones,
+   swiping work too). No backdrop blur here: the book is still turning when this fades in. */
+.gr-bar {
   position: absolute;
   left: 50%;
-  bottom: max(20px, env(safe-area-inset-bottom));
+  bottom: max(clamp(16px, 2.6svh, 28px), env(safe-area-inset-bottom));
   translate: -50% 0;
-  display: none;
+  display: flex;
+  align-items: center;
   gap: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0s 0.25s;
 }
 
-.gr-pager button {
-  width: 46px;
-  height: 46px;
+.gr-bar[data-show] {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.6s ease 1.4s, visibility 0s 1.4s; /* after the cover has swung open */
+}
+
+.gr-bar button {
   border: 0;
-  border-radius: 50%;
-  font: 400 28px / 1 system-ui, sans-serif;
   color: #fff;
-  background: rgba(14, 16, 32, 0.55);
-  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(14px);
+  background: rgba(14, 16, 32, 0.74);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.24);
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.gr-pager button:disabled {
-  opacity: 0.35;
+.gr-bar button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 
-@media (max-width: 799px), (max-aspect-ratio: 11/10) {
-  .gr[data-phase="open"] .gr-pager {
-    display: flex;
+.gr-close {
+  min-height: 60px;
+  padding: 0 2.1rem;
+  border-radius: 999px;
+  font: 500 1.15rem / 1 var(--font-sans), system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.gr-arrow {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  border-radius: 50%;
+  font: 400 36px / 1 system-ui, sans-serif;
+}
+
+/* aria-disabled rather than disabled: the button a keyboard user just pressed to reach the last page keeps the focus */
+.gr-arrow[aria-disabled="true"] {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (max-width: 380px) {
+  .gr-bar {
+    gap: 10px;
+  }
+
+  .gr-close {
+    padding: 0 1.2rem;
+    font-size: 1rem;
+  }
+
+  .gr-arrow {
+    width: 52px;
+    height: 52px;
   }
 }
 
@@ -290,7 +365,9 @@
     animation: none !important;
   }
 
-  .gr-cam {
+  .gr-cam,
+  .gr-bar,
+  .gr-bar[data-show] {
     transition: none;
   }
 }
