@@ -62,7 +62,7 @@ const paintBase = (ctx: CanvasRenderingContext2D) => {
   ctx.stroke();
 };
 
-// an orange rule with a diamond in the middle, like the one on the Teams page
+// an orange rule with a diamond in the middle, like the one on the Contact page
 const paintRule = (ctx: CanvasRenderingContext2D, y: number, half: number) => {
   const cx = FACE_W / 2;
   ctx.strokeStyle = ORANGE;

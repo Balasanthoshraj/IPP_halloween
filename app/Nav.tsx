@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- one pre-sized logo in public/art */
 "use client";
 
 import Link from "next/link";
@@ -90,15 +91,23 @@ export default function Nav() {
   }, [path, home]);
 
   return (
-    <nav className="nav" aria-label="Primary" ref={ref}>
-      <span className="nav-pill" aria-hidden="true" />
-      <ul>
-        {LINKS.map(({ href, label }, i) => (
-          <li key={href} style={{ "--i": i } as CSSProperties}>
-            <Link href={href}>{label}</Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <>
+      <nav className="nav" aria-label="Primary" ref={ref}>
+        <span className="nav-pill" aria-hidden="true" />
+        <ul>
+          {LINKS.map(({ href, label }, i) => (
+            <li key={href} style={{ "--i": i } as CSSProperties}>
+              <Link href={href}>{label}</Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      {/* the landing page has its own logos in the scene; the nav's data-page lets this one arrive with the pill (see .brand) */}
+      {!home && (
+        <Link className="brand" href="/" aria-label="ISTA i++26, home">
+          <img src="/art/logoBrand.webp" width={420} height={168} alt="" />
+        </Link>
+      )}
+    </>
   );
 }

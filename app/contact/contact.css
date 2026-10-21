@@ -1,4 +1,4 @@
-/* Teams: a fixed graveyard behind a column of stone cards. Each card opens (Reveal.tsx) as it scrolls into view. */
+/* Contact: a fixed graveyard behind a column of stone cards. Each card opens (Reveal.tsx) as it scrolls into view. */
 .tm {
   --orange: #f28a2e;
   position: relative;
