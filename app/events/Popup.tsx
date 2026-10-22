@@ -34,9 +34,9 @@ export default function Popup({ event, open, onClose }: { event: EventInfo | nul
           </button>
           <div className="ev-sheet" key={event.slug} style={{ "--a": event.accent } as React.CSSProperties}>
             <div className="ev-poster">
-              <img src={`/art/events/${event.slug}.webp`} alt="" width={853} height={1200} decoding="async" />
+              <img src={event.art?.poster ?? `/art/events/${event.slug}.webp`} alt="" width={853} height={1200} decoding="async" />
               <div className="ev-poster-top" aria-hidden="true">
-                <span className="ev-brand">ISTA presents i++26</span>
+                <span className="ev-brand">ISTA presents i++ 26</span>
                 <strong>{event.title}</strong>
                 <span className="ev-tag">{event.tagline}</span>
               </div>

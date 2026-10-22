@@ -11,6 +11,8 @@ const fell = IM_Fell_English({ subsets: ["latin"], weight: "400", variable: "--f
 
 export const metadata: Metadata = {
   title: "ISTA presents i++26",
+  description:
+    "Discover ISTA presents i++26, the College of Engineering, Guindy's student symposium featuring technical events, games, and community activities.",
 };
 
 export const viewport: Viewport = {

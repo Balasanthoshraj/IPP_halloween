@@ -19,7 +19,7 @@ const ISTA = [
   "We also aim at guiding students across all years with a variety of matters, for a better tomorrow.",
 ];
 const IPP = [
-  "Held every year in the odd semester, I++ is the intra-college symposium held by ISTA.",
+  "Held every year in the odd semester, i++ is the intra-college symposium held by ISTA.",
   "With a footfall of about 800 odd students every year, we strive hard to do our part in bringing together the student community of not just our department, but the entire community at the College of Engineering, Guindy.",
 ];
 const ISTA_URL = "https://istaceg.in/";
@@ -337,7 +337,7 @@ export default function Grimoire() {
             {ISTA_URL}
           </a>
         </p>
-        <h2>I++</h2>
+        <h2>i++</h2>
         <p>{IPP.join(" ")}</p>
       </article>
 

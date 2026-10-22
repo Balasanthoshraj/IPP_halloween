@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="853" height="1200" viewBox="0 0 853 1200" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="76" y1="38" x2="780" y2="1130" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#162438"/>
+      <stop offset=".55" stop-color="#101522"/>
+      <stop offset="1" stop-color="#080B12"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="matrix(0 515 -427 0 427 377)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D5B16D" stop-opacity=".31"/>
+      <stop offset="1" stop-color="#D5B16D" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="line" x1="137" y1="385" x2="720" y2="385" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D5B16D" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#F0D398"/>
+      <stop offset="1" stop-color="#D5B16D" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#bg)" d="M0 0h853v1200H0z"/>
+  <path fill="url(#glow)" d="M0 0h853v1200H0z"/>
+  <circle cx="111" cy="174" r="2" fill="#F4E8D0" fill-opacity=".8"/>
+  <circle cx="727" cy="237" r="2" fill="#F4E8D0" fill-opacity=".6"/>
+  <circle cx="656" cy="112" r="1.5" fill="#F4E8D0" fill-opacity=".6"/>
+  <circle cx="201" cy="291" r="1.5" fill="#F4E8D0" fill-opacity=".7"/>
+  <circle cx="425" cy="166" r="2" fill="#F4E8D0" fill-opacity=".7"/>
+  <path d="M137 385h579" stroke="url(#line)"/>
+  <g transform="translate(142 468) rotate(-8 284 284)">
+    <path d="M48 0h472a48 48 0 0 1 48 48v472a48 48 0 0 1-48 48H48a48 48 0 0 1-48-48V48A48 48 0 0 1 48 0Z" fill="#D5B16D" fill-opacity=".88"/>
+    <path fill="#161923" d="M48 48h118v118H48zM284 48h118v118H284zM166 166h118v118H166zM402 166h118v118H402zM48 284h118v118H48zM284 284h118v118H284zM166 402h118v118H166zM402 402h118v118H402z"/>
+  </g>
+  <g fill="#F7EAD0" font-family="Georgia,serif" text-anchor="middle">
+    <text x="426" y="650" font-size="156" opacity=".9">♞</text>
+    <text x="426" y="874" font-size="146" opacity=".22">♟</text>
+  </g>
+  <text x="426" y="1017" fill="#F7EAD0" font-family="Georgia,serif" font-size="29" letter-spacing="8" text-anchor="middle">ISTA PRESENTS I++26</text>
+  <path d="M285 1052h283" stroke="#D5B16D" stroke-opacity=".65"/>
+</svg>

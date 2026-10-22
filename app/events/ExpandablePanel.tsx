@@ -36,8 +36,8 @@ export default function ExpandablePanel({
         return (
           <li className="ev-slot" key={e.slug} data-open={on || undefined} style={{ "--i": i, "--a": e.accent } as CSSProperties}>
             <button className="ev-card" aria-expanded={on} aria-haspopup={on ? "dialog" : undefined} onClick={() => (on ? onOpen(e) : setOpen(i))}>
-              <img className="ev-art" src={`/art/events/${e.slug}.webp`} alt="" width={853} height={1200} decoding="async" />
-              <img className="ev-tab-art" src={`/art/events/${e.slug}-tab.webp`} alt="" width={480} height={675} decoding="async" />
+              <img className="ev-art" src={e.art?.poster ?? `/art/events/${e.slug}.webp`} alt="" width={853} height={1200} decoding="async" />
+              <img className="ev-tab-art" src={e.art?.tab ?? `/art/events/${e.slug}-tab.webp`} alt="" width={480} height={675} decoding="async" />
               <span className="ev-fold">{e.title}</span>
               <span className="ev-info">
                 <span className="ev-title">{e.title}</span>

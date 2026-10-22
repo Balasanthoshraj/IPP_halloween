@@ -8,6 +8,8 @@ import "./events.css";
 
 export const metadata: Metadata = {
   title: "Events · ISTA presents i++26",
+  description:
+    "Explore the technical and non-technical events at ISTA presents i++26, including competitions, games, and online chess on 23 and 24 October.",
 };
 
 const BG = "/art/events/bg.webp";

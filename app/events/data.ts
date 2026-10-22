@@ -1,10 +1,11 @@
 // The events, written from the I++ EVENTS 2026 document, which gives each event's format, rounds, timings and rules. The dates and
-// venues were added afterwards (all on 24 October 2026). A `prize` and `contacts` are still to come: the popup shows them once set.
+// venues were added afterwards. A `prize` and `contacts` are still to come: the popup shows them once set.
 export type Category = "technical" | "non-technical";
 export type Line = { label?: string; text: string };
 export type Section = { heading?: string; lines: Line[] };
 export type EventInfo = {
-  slug: string; // also the name of its art file, /art/events/<slug>.webp
+  slug: string;
+  art?: { poster: string; tab: string };
   title: string;
   category: Category;
   tagline: string;
@@ -300,6 +301,28 @@ export const EVENTS: readonly EventInfo[] = [
         lines: [
           { label: "Duration", text: "1 hour" },
           { label: "Task", text: "A theme-based challenge. Pick a genre to get your question set and solve three questions one by one: each answer leads to a hidden number chit in the room, and finding it unlocks the next question. After the third, burst a balloon to mark your finish. The fastest team wins." },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "online-chess",
+    art: { poster: "/art/events/online-chess.png", tab: "/art/events/online-chess-tab.png" },
+    title: "Online Chess",
+    category: "non-technical",
+    tagline: "Online chess, two nights.",
+    accent: "#d5b16d",
+    date: "23 & 24 October 2026",
+    time: "7:00 pm – 9:00 pm each night",
+    team: "Individual",
+    venue: "Online",
+    sections: [
+      {
+        lines: [
+          {
+            label: "Online Chess",
+            text: "Join us for online chess on 23 and 24 October, from 7:00 pm to 9:00 pm each night.",
+          },
         ],
       },
     ],
